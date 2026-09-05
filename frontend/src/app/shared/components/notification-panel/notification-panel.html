@@ -1,0 +1,49 @@
+<section class="notification-panel">
+  <header class="notification-panel__header">
+    <div>
+      <span class="eyebrow">Alertas</span>
+      <h2>Entregas atrasadas</h2>
+    </div>
+
+    <span class="notification-count">
+      {{ notifications.length }}
+    </span>
+  </header>
+
+  @if (loading) {
+    <div class="notification-state">
+      Cargando notificaciones…
+    </div>
+  } @else if (notifications.length === 0) {
+    <div class="notification-state notification-state--success">
+      <span aria-hidden="true">✓</span>
+      No existen entregas atrasadas.
+    </div>
+  } @else {
+    <div class="notification-list">
+      @for (notification of notifications; track notification.id) {
+        <button
+          class="notification"
+          type="button"
+          (click)="projectSelected.emit(notification.project_id)"
+        >
+          <span class="notification__icon" aria-hidden="true">!</span>
+
+          <span class="notification__content">
+            <strong>{{ notification.deliverable_name }}</strong>
+            <small>
+              {{ notification.project_name }} ·
+              {{ notification.client_name }}
+            </small>
+            <span>
+              Venció hace {{ notification.days_overdue }}
+              {{ notification.days_overdue === 1 ? 'día' : 'días' }}
+            </span>
+          </span>
+
+          <span class="notification__arrow" aria-hidden="true">›</span>
+        </button>
+      }
+    </div>
+  }
+</section>

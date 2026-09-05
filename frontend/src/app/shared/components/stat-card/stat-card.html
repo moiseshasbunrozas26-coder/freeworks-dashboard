@@ -1,0 +1,12 @@
+<article class="stat-card" [attr.data-tone]="tone">
+  <div class="stat-card__icon" aria-hidden="true">{{ icon }}</div>
+
+  <div class="stat-card__content">
+    <span class="stat-card__label">{{ label }}</span>
+    <strong class="stat-card__value">{{ value }}</strong>
+
+    @if (subtitle) {
+      <small class="stat-card__subtitle">{{ subtitle }}</small>
+    }
+  </div>
+</article>
