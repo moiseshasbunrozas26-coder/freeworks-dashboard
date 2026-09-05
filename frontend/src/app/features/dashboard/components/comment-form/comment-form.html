@@ -1,0 +1,40 @@
+<form
+  class="comment-form"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+>
+  <h4>Registrar comentario</h4>
+
+  <label>
+    <span>Nombre del cliente *</span>
+    <input
+      type="text"
+      formControlName="author"
+      placeholder="Nombre del cliente"
+      [class.invalid]="isInvalid('author')"
+    >
+    @if (isInvalid('author')) {
+      <small>Ingresa un nombre de al menos 2 caracteres.</small>
+    }
+  </label>
+
+  <label>
+    <span>Comentario *</span>
+    <textarea
+      rows="3"
+      formControlName="content"
+      placeholder="Escribe la observación o retroalimentación"
+      [class.invalid]="isInvalid('content')"
+    ></textarea>
+    @if (isInvalid('content')) {
+      <small>El comentario debe tener al menos 3 caracteres.</small>
+    }
+  </label>
+
+  <button
+    type="submit"
+    [disabled]="submitting || !project"
+  >
+    {{ submitting ? 'Guardando…' : 'Agregar comentario' }}
+  </button>
+</form>

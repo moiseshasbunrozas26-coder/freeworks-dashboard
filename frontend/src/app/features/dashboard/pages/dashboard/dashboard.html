@@ -52,21 +52,33 @@
         </p>
       </div>
 
-      <button
-        class="refresh-button"
-        type="button"
-        [disabled]="loading"
-        (click)="loadDashboard()"
-      >
-        <span aria-hidden="true">↻</span>
-        Actualizar
-      </button>
+      <div class="page-header__actions">
+        <button
+          class="primary-action"
+          type="button"
+          (click)="openCreateProject()"
+        >
+          <span aria-hidden="true">+</span>
+          Nuevo proyecto
+        </button>
+
+        <button
+          class="refresh-button"
+          type="button"
+          [disabled]="loading"
+          (click)="loadDashboard()"
+        >
+          <span aria-hidden="true">↻</span>
+          Actualizar
+        </button>
+      </div>
     </header>
 
     @if (errorMessage) {
       <div class="message message--error" role="alert">
         <span aria-hidden="true">!</span>
         {{ errorMessage }}
+
         <button
           type="button"
           aria-label="Cerrar mensaje"
@@ -153,8 +165,11 @@
             <span>Cliente</span>
             <select formControlName="client">
               <option value="">Todos los clientes</option>
+
               @for (client of clients; track client.id) {
-                <option [value]="client.id">{{ client.name }}</option>
+                <option [value]="client.id">
+                  {{ client.name }}
+                </option>
               }
             </select>
           </label>
@@ -193,13 +208,17 @@
           <div class="loading-state" aria-live="polite">
             <span class="spinner"></span>
             <strong>Cargando proyectos</strong>
-            <small>Obteniendo información desde FreeWorks…</small>
+            <small>
+              Obteniendo información desde FreeWorks…
+            </small>
           </div>
         } @else if (projects.length === 0) {
           <div class="empty-state">
             <span aria-hidden="true">⌕</span>
             <h3>No encontramos proyectos</h3>
-            <p>Prueba modificando o limpiando los filtros seleccionados.</p>
+            <p>
+              Prueba modificando o limpiando los filtros seleccionados.
+            </p>
             <button type="button" (click)="clearFilters()">
               Limpiar filtros
             </button>
@@ -259,6 +278,7 @@
                     : 0
                 }}%
               </strong>
+
               <span>entregado</span>
             </div>
           </div>
@@ -290,8 +310,13 @@
     >
       <header class="detail-panel__header">
         <div>
-          <span class="eyebrow">{{ selectedProject.client.name }}</span>
-          <h2 id="project-detail-title">{{ selectedProject.name }}</h2>
+          <span class="eyebrow">
+            {{ selectedProject.client.name }}
+          </span>
+
+          <h2 id="project-detail-title">
+            {{ selectedProject.name }}
+          </h2>
         </div>
 
         <button
@@ -312,17 +337,24 @@
           <span>Estado</span>
           <strong>{{ selectedProject.display_status }}</strong>
         </div>
+
         <div>
           <span>Prioridad</span>
           <strong>{{ selectedProject.priority_label }}</strong>
         </div>
+
         <div>
           <span>Fecha límite</span>
-          <strong>{{ selectedProject.due_date | date: 'dd/MM/yyyy' }}</strong>
+          <strong>
+            {{ selectedProject.due_date | date: 'dd/MM/yyyy' }}
+          </strong>
         </div>
+
         <div>
           <span>Progreso</span>
-          <strong>{{ selectedProject.progress_percentage }}%</strong>
+          <strong>
+            {{ selectedProject.progress_percentage }}%
+          </strong>
         </div>
       </div>
 
@@ -330,7 +362,9 @@
         <h3>Entregables</h3>
 
         @if (selectedProject.deliverables.length === 0) {
-          <p class="detail-empty">Este proyecto no tiene entregables.</p>
+          <p class="detail-empty">
+            Este proyecto no tiene entregables.
+          </p>
         } @else {
           <div class="detail-list">
             @for (
@@ -346,10 +380,13 @@
                 >
                   {{ deliverable.is_delivered ? '✓' : '○' }}
                 </span>
+
                 <div>
                   <strong>{{ deliverable.name }}</strong>
                   <small>
-                    Vence {{ deliverable.due_date | date: 'dd/MM/yyyy' }}
+                    Vence
+                    {{ deliverable.due_date | date: 'dd/MM/yyyy' }}
+
                     @if (deliverable.simulated_file) {
                       · {{ deliverable.simulated_file }}
                     }
@@ -365,24 +402,81 @@
         <h3>Comentarios del cliente</h3>
 
         @if (selectedProject.comments.length === 0) {
-          <p class="detail-empty">Todavía no existen comentarios.</p>
+          <p class="detail-empty">
+            Todavía no existen comentarios.
+          </p>
         } @else {
           <div class="comments">
-            @for (comment of selectedProject.comments; track comment.id) {
+            @for (
+              comment of selectedProject.comments;
+              track comment.id
+            ) {
               <article class="comment">
                 <div class="comment__avatar">
                   {{ comment.author.charAt(0).toUpperCase() }}
                 </div>
+
                 <div>
                   <strong>{{ comment.author }}</strong>
                   <p>{{ comment.content }}</p>
-                  <small>{{ comment.created_at | date: 'dd/MM/yyyy HH:mm' }}</small>
+                  <small>
+                    {{ comment.created_at | date: 'dd/MM/yyyy HH:mm' }}
+                  </small>
                 </div>
               </article>
             }
           </div>
         }
+
+        <app-comment-form
+          [project]="selectedProject"
+          [submitting]="submittingComment"
+          (saveComment)="saveComment($event)"
+        ></app-comment-form>
       </section>
+    </section>
+  </div>
+}
+
+@if (projectFormOpen) {
+  <div
+    class="modal-backdrop modal-backdrop--center"
+    role="presentation"
+  >
+    <section
+      class="form-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Formulario de proyecto"
+    >
+      <app-project-form
+        [clients]="clients"
+        [project]="editingProject"
+        [submitting]="submittingProject"
+        (saveProject)="saveProject($event)"
+        (cancelForm)="closeProjectForm()"
+      ></app-project-form>
+    </section>
+  </div>
+}
+
+@if (deliverableFormOpen) {
+  <div
+    class="modal-backdrop modal-backdrop--center"
+    role="presentation"
+  >
+    <section
+      class="form-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Formulario de entregable"
+    >
+      <app-deliverable-form
+        [project]="deliverableProject"
+        [submitting]="submittingDeliverable"
+        (saveDeliverable)="saveDeliverable($event)"
+        (cancelForm)="closeDeliverableForm()"
+      ></app-deliverable-form>
     </section>
   </div>
 }

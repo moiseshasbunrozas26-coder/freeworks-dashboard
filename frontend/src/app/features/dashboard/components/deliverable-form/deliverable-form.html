@@ -1,0 +1,130 @@
+<form class="entity-form" [formGroup]="form" (ngSubmit)="submit()">
+  <header class="entity-form__header">
+    <div>
+      <span class="eyebrow">Nuevo entregable</span>
+      <h2>Agregar entregable</h2>
+      <p>
+        Proyecto:
+        <strong>{{ project?.name }}</strong>
+      </p>
+    </div>
+
+    <button
+      class="close-button"
+      type="button"
+      aria-label="Cerrar formulario"
+      (click)="cancelForm.emit()"
+    >
+      ×
+    </button>
+  </header>
+
+  <div class="form-grid">
+    <label class="form-field form-field--wide">
+      <span>Nombre del entregable *</span>
+      <input
+        type="text"
+        formControlName="name"
+        placeholder="Ej. Prototipo navegable"
+        [class.invalid]="isInvalid('name')"
+      >
+      @if (isInvalid('name')) {
+        <small>Ingresa un nombre de al menos 3 caracteres.</small>
+      }
+    </label>
+
+    <label class="form-field form-field--wide">
+      <span>Descripción *</span>
+      <textarea
+        rows="4"
+        formControlName="description"
+        placeholder="Describe el contenido que será entregado"
+        [class.invalid]="isInvalid('description')"
+      ></textarea>
+      @if (isInvalid('description')) {
+        <small>Ingresa una descripción válida.</small>
+      }
+    </label>
+
+    <label class="form-field">
+      <span>Fecha límite *</span>
+      <input
+        type="date"
+        formControlName="dueDate"
+        [class.invalid]="isInvalid('dueDate')"
+      >
+      @if (isInvalid('dueDate')) {
+        <small>Indica la fecha límite.</small>
+      }
+    </label>
+
+    <label class="form-field">
+      <span>Archivo simulado</span>
+      <input
+        type="text"
+        formControlName="simulatedFile"
+        placeholder="Ej. entrega-final.zip"
+        [class.invalid]="isInvalid('simulatedFile')"
+      >
+      @if (isInvalid('simulatedFile')) {
+        <small>El nombre no puede superar 255 caracteres.</small>
+      }
+    </label>
+
+    <label class="checkbox-field form-field--wide">
+      <input
+        type="checkbox"
+        formControlName="isDelivered"
+        (change)="onDeliveryStateChange()"
+      >
+      <span>
+        <strong>Marcar como entregado</strong>
+        <small>
+          Actívalo si el archivo ya fue entregado al cliente.
+        </small>
+      </span>
+    </label>
+
+    @if (form.controls.isDelivered.value) {
+      <label class="form-field form-field--wide">
+        <span>Fecha de entrega real *</span>
+        <input
+          type="date"
+          formControlName="deliveredAt"
+          [class.invalid]="
+            form.hasError('deliveredDateRequired') &&
+            form.touched
+          "
+        >
+      </label>
+    }
+
+    @if (
+      form.hasError('deliveredDateRequired') &&
+      form.touched
+    ) {
+      <div class="form-error form-field--wide">
+        Debes indicar la fecha de entrega real.
+      </div>
+    }
+  </div>
+
+  <footer class="entity-form__actions">
+    <button
+      class="button button--secondary"
+      type="button"
+      [disabled]="submitting"
+      (click)="cancelForm.emit()"
+    >
+      Cancelar
+    </button>
+
+    <button
+      class="button button--primary"
+      type="submit"
+      [disabled]="submitting || !project"
+    >
+      {{ submitting ? 'Guardando…' : 'Agregar entregable' }}
+    </button>
+  </footer>
+</form>
