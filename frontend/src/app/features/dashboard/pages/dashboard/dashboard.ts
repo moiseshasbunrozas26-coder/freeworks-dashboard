@@ -19,6 +19,7 @@ import {
   OverdueNotification,
   Project,
   ProjectFilters,
+  ProjectFormData,
   ProjectStatus
 } from '../../../../core/models/freeworks.models';
 import {
@@ -62,7 +63,12 @@ export class Dashboard implements OnInit {
   loading = true;
   errorMessage = '';
   successMessage = '';
+
   selectedProject: Project | null = null;
+
+  projectFormOpen = false;
+  editingProject: Project | null = null;
+  submittingProject = false;
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -137,6 +143,63 @@ export class Dashboard implements OnInit {
     });
   }
 
+  openCreateProject(): void {
+    this.editingProject = null;
+    this.projectFormOpen = true;
+  }
+
+  editProject(project: Project): void {
+    this.editingProject = project;
+    this.projectFormOpen = true;
+  }
+
+  closeProjectForm(): void {
+    if (this.submittingProject) {
+      return;
+    }
+
+    this.projectFormOpen = false;
+    this.editingProject = null;
+  }
+
+  saveProject(data: ProjectFormData): void {
+    this.submittingProject = true;
+    this.errorMessage = '';
+
+    const request = this.editingProject
+      ? this.api.updateProject(this.editingProject.id, data)
+      : this.api.createProject(data);
+
+    request.subscribe({
+      next: () => {
+        const message = this.editingProject
+          ? 'Proyecto actualizado correctamente.'
+          : 'Proyecto creado correctamente.';
+
+        this.submittingProject = false;
+        this.projectFormOpen = false;
+        this.editingProject = null;
+
+        this.showSuccess(message);
+        this.loadDashboard();
+      },
+      error: error => {
+        this.submittingProject = false;
+
+        if (error?.error?.due_date) {
+          this.errorMessage = error.error.due_date[0];
+        } else if (error?.error?.name) {
+          this.errorMessage = error.error.name[0];
+        } else {
+          this.errorMessage =
+            'No fue posible guardar el proyecto. Revisa los datos ingresados.';
+        }
+
+        this.changeDetector.detectChanges();
+      }
+    });
+  }
+
   changeStatus(
     project: Project,
     projectStatus: ProjectStatus
@@ -208,13 +271,6 @@ export class Dashboard implements OnInit {
     this.selectedProject = null;
   }
 
-  editProject(project: Project): void {
-    this.selectedProject = project;
-    this.showSuccess(
-      `Proyecto "${project.name}" seleccionado para edición.`
-    );
-  }
-
   addDeliverable(project: Project): void {
     this.selectedProject = project;
     this.showSuccess(
@@ -232,7 +288,9 @@ export class Dashboard implements OnInit {
     return {
       search: values.search ?? '',
       client: values.client ? Number(values.client) : null,
-      status: (values.status ?? '') as ProjectFilters['status'],
+      status: (
+        values.status ?? ''
+      ) as ProjectFilters['status'],
       priority: (
         values.priority ?? ''
       ) as ProjectFilters['priority']

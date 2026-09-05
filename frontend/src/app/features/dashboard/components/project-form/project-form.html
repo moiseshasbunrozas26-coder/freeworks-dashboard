@@ -1,0 +1,165 @@
+<form class="entity-form" [formGroup]="form" (ngSubmit)="submit()">
+  <header class="entity-form__header">
+    <div>
+      <span class="eyebrow">
+        {{ project ? 'Editar registro' : 'Nuevo registro' }}
+      </span>
+      <h2>
+        {{ project ? 'Editar proyecto' : 'Crear proyecto' }}
+      </h2>
+      <p>
+        Completa los datos principales para gestionar el trabajo.
+      </p>
+    </div>
+
+    <button
+      class="close-button"
+      type="button"
+      aria-label="Cerrar formulario"
+      (click)="cancelForm.emit()"
+    >
+      ×
+    </button>
+  </header>
+
+  <div class="form-grid">
+    <label class="form-field form-field--wide">
+      <span>Nombre del proyecto *</span>
+      <input
+        type="text"
+        formControlName="name"
+        placeholder="Ej. Desarrollo de tienda online"
+        [class.invalid]="isInvalid('name')"
+      >
+      @if (isInvalid('name')) {
+        <small>Ingresa un nombre de al menos 3 caracteres.</small>
+      }
+    </label>
+
+    <label class="form-field form-field--wide">
+      <span>Descripción</span>
+      <textarea
+        rows="4"
+        formControlName="description"
+        placeholder="Describe los objetivos y alcance del proyecto"
+        [class.invalid]="isInvalid('description')"
+      ></textarea>
+      @if (isInvalid('description')) {
+        <small>La descripción no puede superar 1.000 caracteres.</small>
+      }
+    </label>
+
+    <label class="form-field form-field--wide">
+      <span>Cliente *</span>
+      <select
+        formControlName="clientId"
+        [class.invalid]="isInvalid('clientId')"
+      >
+        <option value="">Selecciona un cliente</option>
+        @for (client of clients; track client.id) {
+          <option [value]="client.id">
+            {{ client.name }}
+            @if (client.company) {
+              · {{ client.company }}
+            }
+          </option>
+        }
+      </select>
+      @if (isInvalid('clientId')) {
+        <small>Selecciona el cliente responsable.</small>
+      }
+    </label>
+
+    <label class="form-field">
+      <span>Fecha de inicio *</span>
+      <input
+        type="date"
+        formControlName="startDate"
+        [class.invalid]="isInvalid('startDate')"
+      >
+      @if (isInvalid('startDate')) {
+        <small>Indica una fecha de inicio.</small>
+      }
+    </label>
+
+    <label class="form-field">
+      <span>Fecha límite *</span>
+      <input
+        type="date"
+        formControlName="dueDate"
+        [class.invalid]="isInvalid('dueDate')"
+      >
+      @if (isInvalid('dueDate')) {
+        <small>Indica una fecha de entrega.</small>
+      }
+    </label>
+
+    @if (form.hasError('invalidDateRange') && form.touched) {
+      <div class="form-error form-field--wide">
+        La fecha límite no puede ser anterior a la fecha de inicio.
+      </div>
+    }
+
+    <label class="form-field">
+      <span>Estado *</span>
+      <select formControlName="status">
+        <option value="pending">Pendiente</option>
+        <option value="in_progress">En progreso</option>
+        <option value="completed">Finalizado</option>
+      </select>
+    </label>
+
+    <label class="form-field">
+      <span>Prioridad *</span>
+      <select formControlName="priority">
+        <option value="low">Baja</option>
+        <option value="medium">Media</option>
+        <option value="high">Alta</option>
+      </select>
+    </label>
+
+    <label class="form-field form-field--wide">
+      <span>Progreso manual</span>
+      <div class="progress-input">
+        <input
+          type="number"
+          min="0"
+          max="100"
+          formControlName="manualProgress"
+          placeholder="Vacío para cálculo automático"
+          [class.invalid]="isInvalid('manualProgress')"
+        >
+        <span>%</span>
+      </div>
+      <small class="help-text">
+        Déjalo vacío para calcularlo según los entregables completados.
+      </small>
+      @if (isInvalid('manualProgress')) {
+        <small>El progreso debe estar entre 0 y 100.</small>
+      }
+    </label>
+  </div>
+
+  <footer class="entity-form__actions">
+    <button
+      class="button button--secondary"
+      type="button"
+      [disabled]="submitting"
+      (click)="cancelForm.emit()"
+    >
+      Cancelar
+    </button>
+
+    <button
+      class="button button--primary"
+      type="submit"
+      [disabled]="submitting"
+    >
+      @if (submitting) {
+        Guardando…
+      } @else {
+        {{ project ? 'Guardar cambios' : 'Crear proyecto' }}
+      }
+    </button>
+  </footer>
+</form>
