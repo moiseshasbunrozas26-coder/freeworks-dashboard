@@ -445,3 +445,24 @@
     </section>
   </div>
 }
+
+@if (deliverableFormOpen) {
+  <div
+    class="modal-backdrop modal-backdrop--center"
+    role="presentation"
+  >
+    <section
+      class="form-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Formulario de entregable"
+    >
+      <app-deliverable-form
+        [project]="deliverableProject"
+        [submitting]="submittingDeliverable"
+        (saveDeliverable)="saveDeliverable($event)"
+        (cancelForm)="closeDeliverableForm()"
+      ></app-deliverable-form>
+    </section>
+  </div>
+}
