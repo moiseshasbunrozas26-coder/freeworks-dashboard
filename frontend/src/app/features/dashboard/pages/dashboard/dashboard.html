@@ -1,0 +1,388 @@
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand__mark">FW</span>
+      <div>
+        <strong>FreeWorks</strong>
+        <small>Freelance workspace</small>
+      </div>
+    </div>
+
+    <nav class="navigation" aria-label="Navegación principal">
+      <button class="navigation__item navigation__item--active" type="button">
+        <span aria-hidden="true">▦</span>
+        Tablero
+      </button>
+
+      <button class="navigation__item" type="button">
+        <span aria-hidden="true">▣</span>
+        Proyectos
+        <small>{{ statistics.total_projects }}</small>
+      </button>
+
+      <button class="navigation__item" type="button">
+        <span aria-hidden="true">✓</span>
+        Entregables
+        <small>{{ statistics.total_deliverables }}</small>
+      </button>
+
+      <button class="navigation__item" type="button">
+        <span aria-hidden="true">!</span>
+        Alertas
+        <small>{{ notifications.length }}</small>
+      </button>
+    </nav>
+
+    <div class="sidebar__footer">
+      <span class="avatar">AH</span>
+      <div>
+        <strong>Alex Hasbún</strong>
+        <small>Freelancer</small>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <span class="eyebrow">Panel de gestión</span>
+        <h1>Resumen de proyectos</h1>
+        <p>
+          Controla avances, entregables y comentarios desde un solo lugar.
+        </p>
+      </div>
+
+      <button
+        class="refresh-button"
+        type="button"
+        [disabled]="loading"
+        (click)="loadDashboard()"
+      >
+        <span aria-hidden="true">↻</span>
+        Actualizar
+      </button>
+    </header>
+
+    @if (errorMessage) {
+      <div class="message message--error" role="alert">
+        <span aria-hidden="true">!</span>
+        {{ errorMessage }}
+        <button
+          type="button"
+          aria-label="Cerrar mensaje"
+          (click)="errorMessage = ''"
+        >
+          ×
+        </button>
+      </div>
+    }
+
+    @if (successMessage) {
+      <div class="message message--success" role="status">
+        <span aria-hidden="true">✓</span>
+        {{ successMessage }}
+      </div>
+    }
+
+    <section class="stats-grid" aria-label="Estadísticas">
+      <app-stat-card
+        label="Total de proyectos"
+        [value]="statistics.total_projects"
+        subtitle="Proyectos registrados"
+        icon="▦"
+        tone="blue"
+      ></app-stat-card>
+
+      <app-stat-card
+        label="En progreso"
+        [value]="statistics.in_progress_projects"
+        [subtitle]="statistics.average_progress + '% de avance promedio'"
+        icon="↗"
+        tone="orange"
+      ></app-stat-card>
+
+      <app-stat-card
+        label="Finalizados"
+        [value]="statistics.completed_projects"
+        subtitle="Entregas completadas"
+        icon="✓"
+        tone="green"
+      ></app-stat-card>
+
+      <app-stat-card
+        label="Atrasados"
+        [value]="statistics.overdue_projects"
+        subtitle="Requieren atención"
+        icon="!"
+        tone="red"
+      ></app-stat-card>
+    </section>
+
+    <section class="workspace">
+      <div class="projects-section">
+        <header class="section-header">
+          <div>
+            <span class="eyebrow">Portafolio</span>
+            <h2>Proyectos</h2>
+          </div>
+
+          <span class="result-count">
+            {{ projects.length }}
+            {{ projects.length === 1 ? 'resultado' : 'resultados' }}
+          </span>
+        </header>
+
+        <form
+          class="filters"
+          [formGroup]="filtersForm"
+          aria-label="Filtros de proyectos"
+        >
+          <label class="search-field">
+            <span>Buscar</span>
+            <div>
+              <span aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                formControlName="search"
+                placeholder="Proyecto o entregable"
+              >
+            </div>
+          </label>
+
+          <label>
+            <span>Cliente</span>
+            <select formControlName="client">
+              <option value="">Todos los clientes</option>
+              @for (client of clients; track client.id) {
+                <option [value]="client.id">{{ client.name }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Estado</span>
+            <select formControlName="status">
+              <option value="">Todos los estados</option>
+              <option value="pending">Pendiente</option>
+              <option value="in_progress">En progreso</option>
+              <option value="completed">Finalizado</option>
+              <option value="overdue">Atrasado</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Prioridad</span>
+            <select formControlName="priority">
+              <option value="">Todas las prioridades</option>
+              <option value="low">Baja</option>
+              <option value="medium">Media</option>
+              <option value="high">Alta</option>
+            </select>
+          </label>
+
+          <button
+            class="clear-button"
+            type="button"
+            (click)="clearFilters()"
+          >
+            Limpiar
+          </button>
+        </form>
+
+        @if (loading) {
+          <div class="loading-state" aria-live="polite">
+            <span class="spinner"></span>
+            <strong>Cargando proyectos</strong>
+            <small>Obteniendo información desde FreeWorks…</small>
+          </div>
+        } @else if (projects.length === 0) {
+          <div class="empty-state">
+            <span aria-hidden="true">⌕</span>
+            <h3>No encontramos proyectos</h3>
+            <p>Prueba modificando o limpiando los filtros seleccionados.</p>
+            <button type="button" (click)="clearFilters()">
+              Limpiar filtros
+            </button>
+          </div>
+        } @else {
+          <div class="projects-grid">
+            @for (
+              project of projects;
+              track trackProject($index, project)
+            ) {
+              <app-project-card
+                [project]="project"
+                (viewProject)="openProject($event)"
+                (editProject)="editProject($event)"
+                (deleteProject)="removeProject($event)"
+                (addDeliverable)="addDeliverable($event)"
+                (statusChange)="changeStatus(project, $event)"
+                (progressChange)="changeProgress(project, $event)"
+              ></app-project-card>
+            }
+          </div>
+        }
+      </div>
+
+      <aside class="alerts-column">
+        <app-notification-panel
+          [notifications]="notifications"
+          [loading]="loading"
+          (projectSelected)="openProjectById($event)"
+        ></app-notification-panel>
+
+        <section class="delivery-summary">
+          <span class="eyebrow">Entregables</span>
+          <h2>Avance global</h2>
+
+          <div class="delivery-chart">
+            <div
+              class="delivery-chart__value"
+              [style.--progress]="
+                statistics.total_deliverables
+                  ? (
+                      statistics.delivered_deliverables /
+                      statistics.total_deliverables *
+                      100
+                    ) + '%'
+                  : '0%'
+              "
+            >
+              <strong>
+                {{
+                  statistics.total_deliverables
+                    ? (
+                        statistics.delivered_deliverables /
+                        statistics.total_deliverables *
+                        100
+                      ).toFixed(0)
+                    : 0
+                }}%
+              </strong>
+              <span>entregado</span>
+            </div>
+          </div>
+
+          <p>
+            <strong>{{ statistics.delivered_deliverables }}</strong>
+            de
+            <strong>{{ statistics.total_deliverables }}</strong>
+            entregables completados.
+          </p>
+        </section>
+      </aside>
+    </section>
+  </main>
+</div>
+
+@if (selectedProject) {
+  <div
+    class="modal-backdrop"
+    role="presentation"
+    (click)="closeProject()"
+  >
+    <section
+      class="detail-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="project-detail-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="detail-panel__header">
+        <div>
+          <span class="eyebrow">{{ selectedProject.client.name }}</span>
+          <h2 id="project-detail-title">{{ selectedProject.name }}</h2>
+        </div>
+
+        <button
+          type="button"
+          aria-label="Cerrar detalle"
+          (click)="closeProject()"
+        >
+          ×
+        </button>
+      </header>
+
+      <p class="detail-description">
+        {{ selectedProject.description || 'Proyecto sin descripción.' }}
+      </p>
+
+      <div class="detail-meta">
+        <div>
+          <span>Estado</span>
+          <strong>{{ selectedProject.display_status }}</strong>
+        </div>
+        <div>
+          <span>Prioridad</span>
+          <strong>{{ selectedProject.priority_label }}</strong>
+        </div>
+        <div>
+          <span>Fecha límite</span>
+          <strong>{{ selectedProject.due_date | date: 'dd/MM/yyyy' }}</strong>
+        </div>
+        <div>
+          <span>Progreso</span>
+          <strong>{{ selectedProject.progress_percentage }}%</strong>
+        </div>
+      </div>
+
+      <section class="detail-section">
+        <h3>Entregables</h3>
+
+        @if (selectedProject.deliverables.length === 0) {
+          <p class="detail-empty">Este proyecto no tiene entregables.</p>
+        } @else {
+          <div class="detail-list">
+            @for (
+              deliverable of selectedProject.deliverables;
+              track deliverable.id
+            ) {
+              <article class="detail-item">
+                <span
+                  class="detail-item__status"
+                  [class.detail-item__status--done]="
+                    deliverable.is_delivered
+                  "
+                >
+                  {{ deliverable.is_delivered ? '✓' : '○' }}
+                </span>
+                <div>
+                  <strong>{{ deliverable.name }}</strong>
+                  <small>
+                    Vence {{ deliverable.due_date | date: 'dd/MM/yyyy' }}
+                    @if (deliverable.simulated_file) {
+                      · {{ deliverable.simulated_file }}
+                    }
+                  </small>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="detail-section">
+        <h3>Comentarios del cliente</h3>
+
+        @if (selectedProject.comments.length === 0) {
+          <p class="detail-empty">Todavía no existen comentarios.</p>
+        } @else {
+          <div class="comments">
+            @for (comment of selectedProject.comments; track comment.id) {
+              <article class="comment">
+                <div class="comment__avatar">
+                  {{ comment.author.charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <strong>{{ comment.author }}</strong>
+                  <p>{{ comment.content }}</p>
+                  <small>{{ comment.created_at | date: 'dd/MM/yyyy HH:mm' }}</small>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    </section>
+  </div>
+}

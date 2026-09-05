@@ -1,0 +1,117 @@
+<article class="project-card">
+  <header class="project-card__header">
+    <div>
+      <span class="project-card__client">{{ project.client.name }}</span>
+      <h3>{{ project.name }}</h3>
+    </div>
+
+    <button
+      class="icon-button icon-button--danger"
+      type="button"
+      title="Eliminar proyecto"
+      aria-label="Eliminar proyecto"
+      (click)="deleteProject.emit(project)"
+    >
+      ×
+    </button>
+  </header>
+
+  <p class="project-card__description">
+    {{ project.description || 'Proyecto sin descripción.' }}
+  </p>
+
+  <div class="project-card__badges">
+    <span class="badge" [attr.data-status]="statusClass">
+      {{ project.display_status }}
+    </span>
+
+    <span class="badge" [attr.data-priority]="project.priority">
+      Prioridad {{ project.priority_label }}
+    </span>
+  </div>
+
+  <div class="project-card__meta">
+    <div>
+      <span>Fecha límite</span>
+      <strong>{{ project.due_date | date: 'dd/MM/yyyy' }}</strong>
+    </div>
+
+    <div>
+      <span>Entregables</span>
+      <strong>{{ deliveredCount }}/{{ project.deliverables.length }}</strong>
+    </div>
+  </div>
+
+  <section class="progress">
+    <div class="progress__heading">
+      <span>Progreso</span>
+      <strong>{{ project.progress_percentage }}%</strong>
+    </div>
+
+    <div
+      class="progress__track"
+      role="progressbar"
+      aria-label="Progreso del proyecto"
+      [attr.aria-valuenow]="project.progress_percentage"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <span
+        class="progress__fill"
+        [style.width.%]="project.progress_percentage"
+      ></span>
+    </div>
+  </section>
+
+  <div class="project-card__controls">
+    <label>
+      Estado
+      <select
+        [value]="project.status"
+        (change)="onStatusChange($event)"
+      >
+        <option value="pending">Pendiente</option>
+        <option value="in_progress">En progreso</option>
+        <option value="completed">Finalizado</option>
+      </select>
+    </label>
+
+    <label>
+      Avance manual: {{ project.progress_percentage }}%
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="5"
+        [value]="project.progress_percentage"
+        (change)="onProgressChange($event)"
+      >
+    </label>
+  </div>
+
+  <footer class="project-card__actions">
+    <button
+      class="button button--secondary"
+      type="button"
+      (click)="viewProject.emit(project)"
+    >
+      Ver detalles
+    </button>
+
+    <button
+      class="button button--ghost"
+      type="button"
+      (click)="editProject.emit(project)"
+    >
+      Editar
+    </button>
+
+    <button
+      class="button button--primary"
+      type="button"
+      (click)="addDeliverable.emit(project)"
+    >
+      + Entregable
+    </button>
+  </footer>
+</article>
