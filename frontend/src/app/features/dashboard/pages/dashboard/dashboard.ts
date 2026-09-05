@@ -1,16 +1,17 @@
 import {
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
   inject
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged
 } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
   Client,
@@ -34,6 +35,7 @@ export class Dashboard implements OnInit {
   private readonly api = inject(FreeworksApiService);
   private readonly formBuilder = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   readonly filtersForm = this.formBuilder.group({
     search: [''],
@@ -93,11 +95,13 @@ export class Dashboard implements OnInit {
         this.statistics = result.statistics;
         this.notifications = result.notifications.results;
         this.loading = false;
+        this.changeDetector.detectChanges();
       },
       error: () => {
         this.errorMessage =
           'No fue posible conectar con el servidor. Verifica que Django esté iniciado.';
         this.loading = false;
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -114,10 +118,12 @@ export class Dashboard implements OnInit {
         this.projects = result.projects.results;
         this.statistics = result.statistics;
         this.loading = false;
+        this.changeDetector.detectChanges();
       },
       error: () => {
         this.errorMessage = 'No fue posible aplicar los filtros.';
         this.loading = false;
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -131,7 +137,10 @@ export class Dashboard implements OnInit {
     });
   }
 
-  changeStatus(project: Project, projectStatus: ProjectStatus): void {
+  changeStatus(
+    project: Project,
+    projectStatus: ProjectStatus
+  ): void {
     this.api.updateStatus(project.id, projectStatus).subscribe({
       next: () => {
         this.showSuccess('Estado actualizado correctamente.');
@@ -139,6 +148,7 @@ export class Dashboard implements OnInit {
       },
       error: () => {
         this.errorMessage = 'No fue posible actualizar el estado.';
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -151,6 +161,7 @@ export class Dashboard implements OnInit {
       },
       error: () => {
         this.errorMessage = 'No fue posible actualizar el progreso.';
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -171,6 +182,7 @@ export class Dashboard implements OnInit {
       },
       error: () => {
         this.errorMessage = 'No fue posible eliminar el proyecto.';
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -183,9 +195,11 @@ export class Dashboard implements OnInit {
     this.api.getProject(projectId).subscribe({
       next: project => {
         this.selectedProject = project;
+        this.changeDetector.detectChanges();
       },
       error: () => {
         this.errorMessage = 'No fue posible cargar el proyecto.';
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -219,15 +233,19 @@ export class Dashboard implements OnInit {
       search: values.search ?? '',
       client: values.client ? Number(values.client) : null,
       status: (values.status ?? '') as ProjectFilters['status'],
-      priority: (values.priority ?? '') as ProjectFilters['priority']
+      priority: (
+        values.priority ?? ''
+      ) as ProjectFilters['priority']
     };
   }
 
   private showSuccess(message: string): void {
     this.successMessage = message;
+    this.changeDetector.detectChanges();
 
     window.setTimeout(() => {
       this.successMessage = '';
+      this.changeDetector.detectChanges();
     }, 3000);
   }
 }
