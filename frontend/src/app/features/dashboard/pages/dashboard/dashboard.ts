@@ -15,6 +15,7 @@ import {
 
 import {
   Client,
+  CommentFormData,
   DashboardStatistics,
   DeliverableFormData,
   OverdueNotification,
@@ -74,6 +75,8 @@ export class Dashboard implements OnInit {
   deliverableFormOpen = false;
   deliverableProject: Project | null = null;
   submittingDeliverable = false;
+
+  submittingComment = false;
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -271,6 +274,48 @@ export class Dashboard implements OnInit {
         } else {
           this.errorMessage =
             'No fue posible agregar el entregable. Revisa los datos ingresados.';
+        }
+
+        this.refreshView();
+      }
+    });
+  }
+
+  saveComment(data: CommentFormData): void {
+    this.submittingComment = true;
+    this.errorMessage = '';
+    this.refreshView();
+
+    this.api.createComment(data).subscribe({
+      next: comment => {
+        this.submittingComment = false;
+
+        if (
+          this.selectedProject &&
+          this.selectedProject.id === data.project
+        ) {
+          this.selectedProject = {
+            ...this.selectedProject,
+            comments: [
+              comment,
+              ...this.selectedProject.comments
+            ]
+          };
+        }
+
+        this.showSuccess('Comentario registrado correctamente.');
+        this.refreshView();
+      },
+      error: error => {
+        this.submittingComment = false;
+
+        if (error?.error?.content) {
+          this.errorMessage = error.error.content[0];
+        } else if (error?.error?.author) {
+          this.errorMessage = error.error.author[0];
+        } else {
+          this.errorMessage =
+            'No fue posible registrar el comentario.';
         }
 
         this.refreshView();

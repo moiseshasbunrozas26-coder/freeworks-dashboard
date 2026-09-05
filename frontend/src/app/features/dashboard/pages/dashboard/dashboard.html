@@ -1,4 +1,4 @@
-<<div class="dashboard-layout">
+<div class="dashboard-layout">
   <aside class="sidebar">
     <div class="brand">
       <span class="brand__mark">FW</span>
@@ -78,6 +78,7 @@
       <div class="message message--error" role="alert">
         <span aria-hidden="true">!</span>
         {{ errorMessage }}
+
         <button
           type="button"
           aria-label="Cerrar mensaje"
@@ -164,6 +165,7 @@
             <span>Cliente</span>
             <select formControlName="client">
               <option value="">Todos los clientes</option>
+
               @for (client of clients; track client.id) {
                 <option [value]="client.id">
                   {{ client.name }}
@@ -206,7 +208,9 @@
           <div class="loading-state" aria-live="polite">
             <span class="spinner"></span>
             <strong>Cargando proyectos</strong>
-            <small>Obteniendo información desde FreeWorks…</small>
+            <small>
+              Obteniendo información desde FreeWorks…
+            </small>
           </div>
         } @else if (projects.length === 0) {
           <div class="empty-state">
@@ -274,6 +278,7 @@
                     : 0
                 }}%
               </strong>
+
               <span>entregado</span>
             </div>
           </div>
@@ -308,6 +313,7 @@
           <span class="eyebrow">
             {{ selectedProject.client.name }}
           </span>
+
           <h2 id="project-detail-title">
             {{ selectedProject.name }}
           </h2>
@@ -346,7 +352,9 @@
 
         <div>
           <span>Progreso</span>
-          <strong>{{ selectedProject.progress_percentage }}%</strong>
+          <strong>
+            {{ selectedProject.progress_percentage }}%
+          </strong>
         </div>
       </div>
 
@@ -419,6 +427,12 @@
             }
           </div>
         }
+
+        <app-comment-form
+          [project]="selectedProject"
+          [submitting]="submittingComment"
+          (saveComment)="saveComment($event)"
+        ></app-comment-form>
       </section>
     </section>
   </div>
